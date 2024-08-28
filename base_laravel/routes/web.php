@@ -22,10 +22,11 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'role:sysadmin'])->group(function () {
     Route::get('/sysadmin', [SysadminController::class, 'index'])->name('sysadmin.dashboard');
+    Route::get('/user',     [UserController::class, 'index'])->name('user.dashboard');
 });
 
 Route::middleware(['auth', 'role:manager'])->group(function () {
-    Route::get('/manager',  [ManagerController::class, 'index'])->name('manager.dashboard');
+    Route::get('/sysadmin',  [SysadminController::class, 'index'])->name('sysadmin.dashboard');
     Route::get('/user',     [UserController::class, 'index'])->name('user.dashboard');
 });
 
