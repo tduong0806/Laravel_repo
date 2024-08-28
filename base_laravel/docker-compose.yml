@@ -1,0 +1,40 @@
+version: "3.7"
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: gateway-1358
+    volumes:
+      - ./:/var/www:cached
+    container_name: gateway-1358-app
+    restart: unless-stopped
+    working_dir: /var/www
+    deploy:
+
+  nginx:
+    image: nginx:alpine
+    container_name: gateway-1358-nginx
+    restart: unless-stopped
+    ports:
+      - 82:80
+    volumes:
+      - ./docker-compose/nginx:/etc/nginx/conf.d:ro
+      - ./:/var/www:ro
+ 
+  db:
+    image: mysql:8.0
+    container_name: laravel_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: root
+      MYSQL_ROOT_PASSWORD: database
+      MYSQL_USER: duongdqt
+      MYSQL_PASSWORD: database
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data: ~
