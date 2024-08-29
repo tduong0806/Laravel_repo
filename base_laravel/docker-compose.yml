@@ -10,7 +10,23 @@ services:
     container_name: gateway-1358-app
     restart: unless-stopped
     working_dir: /var/www
+    networks:
+      - my-network
     deploy:
+
+  minio:
+    image: quay.io/minio/minio
+    ports:
+      - "9000:9000"
+      - "9002:9002"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9002"
+    environment:
+      - MINIO_ROOT_USER=ROOTUSER
+      - MINIO_ROOT_PASSWORD=CHANGEME123
+    networks:
+      - my-network
 
   nginx:
     image: nginx:alpine
@@ -21,6 +37,8 @@ services:
     volumes:
       - ./docker-compose/nginx:/etc/nginx/conf.d:ro
       - ./:/var/www:ro
+    networks:
+      - my-network
  
   db:
     image: mysql:8.0
@@ -35,6 +53,12 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+    networks:
+      - my-network
 
 volumes:
-  db_data: ~
+  db_data: 
+  minio_data:
+
+networks:
+  my-network:

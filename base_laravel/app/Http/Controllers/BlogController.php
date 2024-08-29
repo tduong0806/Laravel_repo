@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Blog;
+use Illuminate\Support\Facades\Storage;
 
 class BlogController extends Controller
 {
@@ -26,7 +27,7 @@ class BlogController extends Controller
         // Handle the image upload
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('public/img/images');
+            $imagePath = $request->file('image')->store('img', 'minio');
         }
 
         // Create the blog post
