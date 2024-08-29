@@ -51,4 +51,10 @@ class User extends Authenticatable
             $user->assignRole('user');
         });
     }
+    
+    public function blogs()
+    {
+        return $this->belongsToMany(Blog::class, 'blog_user');
+    }
 }
+

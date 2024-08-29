@@ -11,7 +11,23 @@ class Blog extends Model
     protected $fillable = [
         'title',
         'content',
-        'status',
         'image',
+        'status',
+        'category_id'
     ];
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'blog_tag', 'blog_id', 'tag_id');
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'blog_user', 'blog_id', 'user_id');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 }
