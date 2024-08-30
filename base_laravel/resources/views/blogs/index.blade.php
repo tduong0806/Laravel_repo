@@ -17,10 +17,10 @@
                         <div class="mt-4 p-4 border border-gray-200 rounded-md">
                             <h3 class="text-lg font-semibold">{{ $post->title }}</h3>
                             <p>{{ $post->content }}</p>
-
-                            @if($post->image)
+                            
+                            {{--@if($post->image)
                                 <img src="{{ Storage::disk('minio')->url($post->image) }}" alt="Post Image" class="mt-2">
-                            @endif
+                            @endif --}}
 
                             <div class="mt-2">
                                 <strong>Category:</strong> {{ $post->category->name }}
@@ -101,7 +101,7 @@
                         </div>
     
                         <div class="flex items-center justify-end">
-                            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-blue-600">
+                            <button type="submit" class="bg-blue-500 text-red px-4 py-2 rounded-md shadow-sm hover:bg-blue-600">
                                 Publish
                             </button>
                         </div>

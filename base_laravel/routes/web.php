@@ -39,4 +39,9 @@ Route::middleware(['auth', 'role:user'])->group(function () {
     Route::get('/user',     [UserController::class, 'index'])->name('user.dashboard');
 });
 
+Route::group(['middleware' => ['check.badwords']], function () {
+    Route::post('/blogs', [BlogController::class, 'store'])->name('blogs.store');
+    Route::put('/blogs/{blog}', [BlogController::class, 'update'])->name('blogs.update');
+});
+
 require __DIR__.'/auth.php';
