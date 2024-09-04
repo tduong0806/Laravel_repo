@@ -58,12 +58,13 @@ return [
 
         'minio' => [
             'driver' => 's3',
-            'key' => env('MINIO_ACCESS_KEY', 'minioadmin'),
-            'secret' => env('MINIO_SECRET_KEY', 'minioadmin'),
-            'endpoint' => env('MINIO_ENDPOINT', 'localhost:9000'),
-            'region' => env('MINIO_REGION', 'us-east-1'), 
-            'bucket' => env('MINIO_BUCKET', 'laravel-bucket'),
+            'endpoint' => env('MINIO_INTERNAL_ENDPOINT', 'http://minio:9000'),
             'use_path_style_endpoint' => true,
+            'key' => env('MINIO_ACCESS_KEY'),
+            'secret' => env('MINIO_SECRET_KEY'),
+            'region' => env('MINIO_REGION', 'us-east-1'),
+            'bucket' => env('MINIO_BUCKET', 'laravel-bucket'),
+            'url' => env('MINIO_EXTERNAL_ENDPOINT', 'http://localhost:9000') . '/laravel-bucket',
         ],
 
     ],

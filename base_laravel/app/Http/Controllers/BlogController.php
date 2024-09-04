@@ -60,7 +60,7 @@ class BlogController extends Controller
 
         // Handle the image upload
         $imagePath = null;
-        if ($request->hasFile('image')) {   
+        if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('img', 'minio');
         }
 
