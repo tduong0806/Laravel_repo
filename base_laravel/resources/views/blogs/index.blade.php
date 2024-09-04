@@ -15,7 +15,11 @@
 
                     @foreach($posts as $post)
                         <div class="mt-4 p-4 border border-gray-200 rounded-md">
-                            <h3 class="text-lg font-semibold">{{ $post->title }}</h3>
+                            <h3 class="text-lg font-semibold">
+                                <a href="{{ route('blogs.show', $post->id) }}">
+                                    {{ $post->title }}
+                                </a>
+                            </h3>
                             <p>{{ $post->content }}</p>
                             
                             {{--@if($post->image)
@@ -41,6 +45,8 @@
                             </div>
 
                             <span class="text-sm text-gray-500">{{ $post->status }}</span>
+                            <p><strong>Views:</strong> {{ $post->views }}</p>
+                            <p class="text-sm text-gray-500">Author: {{ $post->author->name ?? 'Unknown' }}</p>
                         </div>
                     @endforeach
 

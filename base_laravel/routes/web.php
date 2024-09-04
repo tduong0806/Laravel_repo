@@ -16,6 +16,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/blogs', [BlogController::class, 'index'])->name('blogs.index');
+Route::get('/drafts', [BlogController::class, 'drafts'])->name('blogs.drafts');
 
 Route::post('/blogs', [BlogController::class, 'store'])->name('blogs.store');
 
@@ -43,5 +44,7 @@ Route::group(['middleware' => ['check.badwords']], function () {
     Route::post('/blogs', [BlogController::class, 'store'])->name('blogs.store');
     Route::put('/blogs/{blog}', [BlogController::class, 'update'])->name('blogs.update');
 });
+
+Route::get('/blogs/{id}', [BlogController::class, 'show'])->name('blogs.show');
 
 require __DIR__.'/auth.php';

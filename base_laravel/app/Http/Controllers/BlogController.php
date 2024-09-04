@@ -8,17 +8,31 @@ use App\Models\Tag;
 use App\Models\Category;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class BlogController extends Controller
 {
     public function index()
     {
-        $posts = Blog::with(['category', 'tags', 'taggedUsers'])->get();
+        $posts = Blog::with(['category', 'tags', 'taggedUsers', 'author'])
+                    ->where('status', 'public')
+                    ->get();
+    
         $tags = Tag::all();
         $categories = Category::all();
         $users = User::all();
     
         return view('blogs.index', compact('posts', 'categories', 'tags', 'users'));
+    }
+
+    public function drafts()
+    {
+        $posts = Blog::with(['category', 'tags', 'taggedUsers', 'author'])
+                    ->where('status', 'draft')
+                    ->where('user_id', Auth::user()->id)
+                    ->get();
+
+        return view('blogs.drafts', compact('posts'));
     }
 
     public function create()
@@ -41,7 +55,7 @@ class BlogController extends Controller
             'tags.*' => 'exists:tags,id',
             'users' => 'array|nullable',
             'users.*' => 'exists:users,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:4096',
         ]);
 
         // Handle the image upload
@@ -51,12 +65,14 @@ class BlogController extends Controller
         }
 
         // Create the blog post
+       
         $blog = Blog::create([
             'title' => $request->title,
             'content' => $request->content,
             'status' => $request->status,
             'image' => $imagePath,
             'category_id' => $request->category_id,
+            'user_id' => Auth::user()->id,
         ]);
 
         if ($request->has('tags')) {
@@ -90,7 +106,7 @@ class BlogController extends Controller
             'tags.*' => 'exists:tags,id',
             'users' => 'array|nullable',
             'users.*' => 'exists:users,id',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:4096',
         ]);
 
         // Update blog
@@ -136,5 +152,14 @@ class BlogController extends Controller
         $blog->delete();
 
         return redirect()->route('blogs.index')->with('success', 'Blog post deleted successfully!');
+    }
+
+    public function show($id)
+    {
+        $post = Blog::with(['category', 'tags', 'taggedUsers'])->findOrFail($id);
+
+        $post->increment('views');
+
+        return view('blogs.show', compact('post'));
     }
 }

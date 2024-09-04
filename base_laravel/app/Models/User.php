@@ -43,6 +43,7 @@ class User extends Authenticatable
         return $this->role === 'user';
     }
 
+
     protected static function boot()
     {
         parent::boot();
