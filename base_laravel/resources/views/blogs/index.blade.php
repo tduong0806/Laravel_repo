@@ -13,7 +13,7 @@
                     <!-- Display existing blog posts -->
                     <h2 class="mt-8 text-xl font-bold">Published Blogs</h2>
 
-                    @foreach($posts as $post)
+                    @foreach($posts->reverse() as $post) 
                         <div class="mt-4 p-4 border border-gray-200 rounded-md">
                             <h3 class="text-lg font-semibold">
                                 <a href="{{ route('blogs.show', $post->id) }}">

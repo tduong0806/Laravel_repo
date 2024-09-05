@@ -42,7 +42,8 @@ Route::middleware(['auth', 'role:user'])->group(function () {
 
 Route::group(['middleware' => ['check.badwords']], function () {
     Route::post('/blogs', [BlogController::class, 'store'])->name('blogs.store');
-    // Route::put('/blogs/{blog}', [BlogController::class, 'update'])->name('blogs.update');
+    Route::get('/blogs/{id}/edit', [BlogController::class, 'edit'])->name('blogs.edit');
+    Route::patch('/blogs/{id}', [BlogController::class, 'update'])->name('blogs.update');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -50,6 +51,11 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/blogs/{id}', [BlogController::class, 'update'])->name('blogs.update');
 
     Route::delete('/blogs/{id}', [BlogController::class, 'destroy'])->name('blogs.destroy');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/blogs/pending', [BlogController::class, 'pending'])->name('blogs.pending');
+    Route::patch('/blogs/{id}/approve', [BlogController::class, 'approve'])->name('blogs.approve');
 });
 
 Route::get('/blogs/{id}', [BlogController::class, 'show'])->name('blogs.show');

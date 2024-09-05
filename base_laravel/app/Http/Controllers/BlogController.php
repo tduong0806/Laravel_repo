@@ -9,14 +9,18 @@ use App\Models\Category;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 
 class BlogController extends Controller
 {
+    use AuthorizesRequests;
+
     public function index()
     {
         $posts = Blog::with(['category', 'tags', 'taggedUsers', 'author'])
                     ->where('status', 'public')
+                    ->where('is_approved', true)
                     ->get();
     
         $tags = Tag::all();
@@ -28,10 +32,18 @@ class BlogController extends Controller
 
     public function drafts()
     {
-        $posts = Blog::with(['category', 'tags', 'taggedUsers', 'author'])
-                    ->where('status', 'draft')
-                    ->where('user_id', Auth::user()->id)
-                    ->get();
+        $id = Auth::user()->id;
+        $user = User::find($id);
+        if ($user->hasRole('sysadmin') || $user->hasRole('manager')) {
+            $posts = Blog::with(['category', 'tags', 'taggedUsers', 'author'])
+            ->where('status', 'draft')
+            ->get();
+        } else {
+            $posts = Blog::with(['category', 'tags', 'taggedUsers', 'author'])
+                        ->where('status', 'draft')
+                        ->where('user_id', $id)
+                        ->get();
+        }
 
         return view('blogs.drafts', compact('posts'));
     }
@@ -64,9 +76,8 @@ class BlogController extends Controller
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('img', 'minio');
         }
-
+        
         // Create the blog post
-       
         $blog = Blog::create([
             'title' => $request->title,
             'content' => $request->content,
@@ -74,6 +85,7 @@ class BlogController extends Controller
             'image' => $imagePath,
             'category_id' => $request->category_id,
             'user_id' => Auth::user()->id,
+            'is_approved' => $request->status == 'public' ? false : true,
         ]);
 
         if ($request->has('tags')) {
@@ -91,6 +103,7 @@ class BlogController extends Controller
     {
         // Tìm bài viết theo ID, nếu không tồn tại sẽ trả về lỗi 404
         $post = Blog::findOrFail($id);
+        $this->authorize('access', $post);
         $tags = Tag::all();
         $categories = Category::all();
         $users = User::all();
@@ -99,10 +112,29 @@ class BlogController extends Controller
         return view('blogs.edit', compact('post', 'tags', 'categories', 'users'));
     }
 
+    private function checkBadWords($title, $content)
+    {
+        $badWords = config('blacklist.badwords');
+
+        foreach ($badWords as $badWord) {
+            if (stripos($title, $badWord) !== false || stripos($content, $badWord) !== false) {
+                return true;
+            }
+        }
+    
+        return false;
+    }
+
     public function update(Request $request, $id)
     {
+
+        if ($this->checkBadWords($request->input('title'), $request->input('content'))) {
+            return redirect()->back()->withErrors(['message' => 'Content contains inappropriate words.']);
+        }
+    
         // Tìm bài viết theo ID, nếu không tồn tại sẽ trả về lỗi 404
         $post = Blog::findOrFail($id);
+        $this->authorize('access', $post);
     
         // Xác thực dữ liệu đầu vào
         $validatedData = $request->validate([
@@ -122,6 +154,7 @@ class BlogController extends Controller
         $post->content = $validatedData['content'];
         $post->status = $validatedData['status'];
         $post->category_id = $validatedData['category_id'];
+        $post->is_approved = $request->status == 'public' ? false : true;
     
         // Cập nhật tags nếu có
         if (isset($validatedData['tags'])) {
@@ -146,19 +179,21 @@ class BlogController extends Controller
         return redirect()->route('blogs.show', $post->id)->with('success', 'Blog post updated successfully!');
     }
 
-    public function destroy(Blog $blog)
+    public function destroy($id)
     {
+        $post = Blog::findOrFail($id);
+        $this->authorize('access', $post);
         // Delete image if exists
-        if ($blog->image) {
-            Storage::disk('minio')->delete($blog->image);
+        if ($post->image) {
+            Storage::disk('minio')->delete($post->image);
         }
 
         // Detach tags and users
-        $blog->tags()->detach();
-        $blog->users()->detach();
+        $post->tags()->detach();
+        $post->users()->detach();
 
         // Delete the blog
-        $blog->delete();
+        $post->delete();
 
         return redirect()->route('blogs.index')->with('success', 'Blog post deleted successfully!');
     }
@@ -166,9 +201,31 @@ class BlogController extends Controller
     public function show($id)
     {
         $post = Blog::with(['category', 'tags', 'taggedUsers'])->findOrFail($id);
+        $this->authorize('access', $post);
 
         $post->increment('views');
 
         return view('blogs.show', compact('post'));
+    }
+
+    public function approve($id)
+    {
+        // Kiểm tra quyền của người dùng, chỉ cho phép sysadmin và manager phê duyệt
+        $post = Blog::findOrFail($id);
+        $this->authorize('approve', $post);
+
+        $post->is_approved = true;
+        $post->save();
+
+        return redirect()->route('blogs.pending')->with('success', 'Blog post approved successfully.');
+    }
+
+    public function pending()
+    {
+        $post = new Blog();
+        $this->authorize('approve', $post);
+        $posts = Blog::PendingApproval()->get();
+
+        return view('blogs.pending', compact('posts'));
     }
 }

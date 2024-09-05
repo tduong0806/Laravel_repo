@@ -16,7 +16,8 @@ class Blog extends Model
         'image',
         'status',
         'category_id',
-        'views'
+        'views',
+        'is_approved',
     ];
 
     public function tags()
@@ -42,6 +43,16 @@ class Blog extends Model
     public function author()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('is_approved', true);
+    }
+
+    public function scopePendingApproval($query)
+    {
+        return $query->where('status', 'public')->where('is_approved', false);
     }
 
 }

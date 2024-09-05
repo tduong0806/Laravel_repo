@@ -72,6 +72,18 @@
                             </button>
                         </div>
                     </form>
+
+                    <form action="{{ route('blogs.destroy', $post->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this post?');" class="mt-4">
+                        @csrf
+                        @method('DELETE')
+
+                        <div class="flex items-center justify-end">
+                            <button type="submit" class="bg-red-500 text-black px-4 py-2 rounded-md shadow-sm hover:bg-red-600">
+                                Delete
+                            </button>
+                        </div>
+                    </form>
+
                 </div>
             </div>
         </div>
