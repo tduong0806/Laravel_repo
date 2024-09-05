@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 
+
 class BlogController extends Controller
 {
     public function index()
@@ -86,55 +87,63 @@ class BlogController extends Controller
         return redirect()->route('blogs.index')->with('success', 'Post created successfully.');
     }
 
-    public function edit(Blog $blog)
+    public function edit($id)
     {
+        // Tìm bài viết theo ID, nếu không tồn tại sẽ trả về lỗi 404
+        $post = Blog::findOrFail($id);
         $tags = Tag::all();
         $categories = Category::all();
         $users = User::all();
-        return view('blogs.edit', compact('blog', 'tags', 'categories', 'users'));
+    
+        // Trả về view 'blogs.edit' và truyền dữ liệu $post vào view
+        return view('blogs.edit', compact('post', 'tags', 'categories', 'users'));
     }
 
-    public function update(Request $request, Blog $blog)
+    public function update(Request $request, $id)
     {
-        // Validate input
-        $request->validate([
+        // Tìm bài viết theo ID, nếu không tồn tại sẽ trả về lỗi 404
+        $post = Blog::findOrFail($id);
+    
+        // Xác thực dữ liệu đầu vào
+        $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'status' => 'required|string|in:draft,public',
-            'category_id' => 'nullable|exists:categories,id',
-            'tags' => 'array|nullable',
+            'status' => 'required|in:draft,public',
+            'category_id' => 'required|exists:categories,id',
+            'tags' => 'array',
             'tags.*' => 'exists:tags,id',
-            'users' => 'array|nullable',
+            'users' => 'array',
             'users.*' => 'exists:users,id',
-            'image' => 'nullable|image|max:4096',
+            'image' => 'nullable|image|max:2048', // Kiểm tra file ảnh nếu có
         ]);
-
-        // Update blog
-        $blog->update($request->only('title', 'content', 'status', 'category_id'));
-
-        // Sync tags
-        if ($request->has('tags')) {
-            $blog->tags()->sync($request->tags);
+    
+        // Cập nhật thông tin bài viết
+        $post->title = $validatedData['title'];
+        $post->content = $validatedData['content'];
+        $post->status = $validatedData['status'];
+        $post->category_id = $validatedData['category_id'];
+    
+        // Cập nhật tags nếu có
+        if (isset($validatedData['tags'])) {
+            $post->tags()->sync($validatedData['tags']);
         }
-
-        // Sync users
-        if ($request->has('users')) {
-            $blog->users()->sync($request->users);
+    
+        // Cập nhật tagged users nếu có
+        if (isset($validatedData['users'])) {
+            $post->taggedUsers()->sync($validatedData['users']);
         }
-
-        // Handle image upload if exists
-        if ($request->hasFile('image')) {   
-            // Delete old image if exists
-            if ($blog->image) {
-                Storage::disk('minio')->delete($blog->image);
-            }
-
+    
+        // Kiểm tra và cập nhật hình ảnh nếu có
+        if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('img', 'minio');
-            $blog->image = $imagePath;
-            $blog->save();
+            $post->image = $imagePath;
         }
-
-        return redirect()->route('blogs.index')->with('success', 'Blog post updated successfully!');
+    
+        // Lưu bài viết
+        $post->save();
+    
+        // Chuyển hướng về trang chi tiết bài viết với thông báo thành công
+        return redirect()->route('blogs.show', $post->id)->with('success', 'Blog post updated successfully!');
     }
 
     public function destroy(Blog $blog)

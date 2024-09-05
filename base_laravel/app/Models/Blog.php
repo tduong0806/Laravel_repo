@@ -3,6 +3,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Policies\PostPolicy;
 
 class Blog extends Model
 {
@@ -42,4 +43,5 @@ class Blog extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
 }

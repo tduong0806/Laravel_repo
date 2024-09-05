@@ -22,7 +22,7 @@
                             </h3>
                             <p>{{ $post->content }}</p>
                             
-                            {{--@if($post->image)
+                            {{-- @if($post->image)
                                 <img src="{{ Storage::disk('minio')->url($post->image) }}" alt="Post Image" class="mt-2">
                             @endif --}}
 
@@ -47,6 +47,19 @@
                             <span class="text-sm text-gray-500">{{ $post->status }}</span>
                             <p><strong>Views:</strong> {{ $post->views }}</p>
                             <p class="text-sm text-gray-500">Author: {{ $post->author->name ?? 'Unknown' }}</p>
+
+                            <!-- Edit button -->
+                            @php
+                                $policy = app(\App\Policies\PostPolicy::class);
+                                $canUpdate = $policy->update(auth()->user(), $post);
+                            @endphp
+                            @if($canUpdate)
+                                <div class="mt-4">
+                                    <a href="{{ route('blogs.edit', $post->id) }}" class="bg-yellow-500 text-black px-4 py-2 rounded-md hover:bg-yellow-600">
+                                        Edit
+                                    </a>
+                                </div>
+                            @endif
                         </div>
                     @endforeach
 
