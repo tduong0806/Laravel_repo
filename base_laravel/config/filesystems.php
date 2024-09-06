@@ -56,6 +56,17 @@ return [
             'throw' => false,
         ],
 
+        'minio' => [
+            'driver' => 's3',
+            'endpoint' => env('MINIO_INTERNAL_ENDPOINT', 'http://minio:9000'),
+            'use_path_style_endpoint' => true,
+            'key' => env('MINIO_ACCESS_KEY'),
+            'secret' => env('MINIO_SECRET_KEY'),
+            'region' => env('MINIO_REGION', 'us-east-1'),
+            'bucket' => env('MINIO_BUCKET', 'laravel-bucket'),
+            'url' => env('MINIO_EXTERNAL_ENDPOINT', 'http://localhost:9000') . '/laravel-bucket',
+        ],
+
     ],
 
     /*

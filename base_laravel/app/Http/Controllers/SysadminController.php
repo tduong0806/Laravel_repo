@@ -8,6 +8,6 @@ class SysadminController extends Controller
 {
     public function index()
     {
-        return view('sysadmin.index'); 
+        return view('sysadmin.dashboard'); 
     }
 }

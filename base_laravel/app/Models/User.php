@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;  
+use App\Policies\PostPolicy;
 
 class User extends Authenticatable
 {
@@ -43,6 +44,7 @@ class User extends Authenticatable
         return $this->role === 'user';
     }
 
+
     protected static function boot()
     {
         parent::boot();
@@ -51,4 +53,10 @@ class User extends Authenticatable
             $user->assignRole('user');
         });
     }
+    
+    public function blogs()
+    {
+        return $this->belongsToMany(Blog::class, 'blog_user');
+    }
 }
+
